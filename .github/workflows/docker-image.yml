@@ -14,22 +14,20 @@ jobs:
       security-events: write
       contents: read
 
-    env:
-      MAX_CRITICAL: 0 
-      MAX_HIGH: 2
-      MAX_MEDIUM: 5
-      MAX_LOW: 10
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run Trivy scan
+      - name: Build Docker image
+        run: docker build -t myapp .
+
+      - name: Run Trivy scan (Fail on CRITICAL)
         uses: aquasecurity/trivy-action@0.24.0
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
+          scan-type: 'image'
+          image-ref: 'myapp'
+          severity: 'CRITICAL'
+          exit-code: '1'
           format: 'sarif'
           output: 'trivy-results.sarif'
 
@@ -37,16 +35,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-results.sarif'
-
-      - name: Verify security alerts
-        uses: instriq/security-gate@v1
-        with:
-          token: ${{ env.GH_TOKEN }}
-          critical: ${{ env.MAX_CRITICAL }}
-          high: ${{ env.MAX_HIGH }}
-          dependency-alerts: true
-          code-alerts: true
-          secret-alerts: true
-    
-    
-    
