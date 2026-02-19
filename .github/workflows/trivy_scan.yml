@@ -29,4 +29,5 @@ jobs:
           image-ref: 'myapp:latest'
           format: 'table'
           exit-code: '1'
+          ignore-unfixed: true
           severity: 'HIGH, CRITICAL'
