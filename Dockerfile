@@ -1,4 +1,5 @@
-FROM python:3.8
+FROM FROM python:3.12-alpine
+
 
 RUN apt-get update && apt-get install -y curl
 
