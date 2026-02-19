@@ -24,7 +24,7 @@ jobs:
           docker build -t myapp:latest .
         
       - name: Run Trivy Scan
-        uses: trivy-action@v0.69.1
+        uses: trivy image myapp:latest
         with:
           image-ref: 'myapp:latest'
           format: 'table'
