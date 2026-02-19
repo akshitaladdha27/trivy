@@ -7,19 +7,17 @@ on:
     branches: [ "main" ]
 
 jobs:
-
- trivy_scan:
+  trivy_scan:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: [actions/checkout@v4](https://github.com)
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Run Trivy vulnerability scanner on an image
-      uses: [aquasecurity/trivy-action@master](https://github.com/aquasecurity/trivy-action)
-      with:
-        image-ref: 'ruby:2.4.0'
-        exit-code: '0'
-        severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
-        format: 'table'
-
+      - name: Run Trivy vulnerability scanner on an image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'ruby:2.4.0'
+          format: 'table'
+          exit-code: '0'
+          severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
