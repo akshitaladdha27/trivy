@@ -8,11 +8,18 @@ on:
 
 jobs:
 
-  build:
-
+ trivy_scan:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+    - name: Checkout repository
+      uses: [actions/checkout@v4](https://github.com)
+
+    - name: Run Trivy vulnerability scanner on an image
+      uses: [aquasecurity/trivy-action@master](https://github.com/aquasecurity/trivy-action)
+      with:
+        image-ref: 'ruby:2.4.0'
+        exit-code: '0'
+        severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
+        format: 'table'
+
