@@ -30,19 +30,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-results.sarif'
-    
-    build:
-    runs-on: ubuntu-latest
-    env:
-      MAX_CRITICAL: 0 
-      MAX_HIGH: 2
-      MAX_MEDIUM: 5
-      MAX_LOW: 10
-      
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+
       - name: Verify security alerts
         uses: instriq/security-gate@master 
         with:
@@ -52,3 +40,13 @@ jobs:
           dependency-alerts: true
           code-alerts: true
           secret-alerts: true
+    
+    build:
+    env:
+      MAX_CRITICAL: 0 
+      MAX_HIGH: 2
+      MAX_MEDIUM: 5
+      MAX_LOW: 10
+      
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
