@@ -14,6 +14,13 @@ jobs:
       security-events: write
       contents: read
 
+    env:
+      MAX_CRITICAL: 0 
+      MAX_HIGH: 2
+      MAX_MEDIUM: 5
+      MAX_LOW: 10
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -41,12 +48,5 @@ jobs:
           code-alerts: true
           secret-alerts: true
     
-    build:
-    env:
-      MAX_CRITICAL: 0 
-      MAX_HIGH: 2
-      MAX_MEDIUM: 5
-      MAX_LOW: 10
-      
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
     
