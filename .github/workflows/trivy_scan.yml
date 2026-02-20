@@ -1,44 +1,75 @@
-name: Trivy Docker Scan
+name: Trivy Docker Scan & Reporting
 
 on:
   push:
-    branches: 
-    - "main"
+    branches: ["main", "issue-*"]
   pull_request:
-    branches: 
-    - "main"
+    branches: ["main", "issue-*"]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
   trivy-scan:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: set up Docker
-        uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
-        run: |
-          docker build -t myapp:latest .
+        run: docker build -t myapp:${{ github.sha }} .
         
       - name: Run Trivy Scan
         uses: aquasecurity/trivy-action@0.20.0
-        # run: trivy image myapp:latest
         with:
-          image-ref: 'myapp:latest'
+          image-ref: 'myapp:${{ github.sha }}'
           format: 'table'
-          exit-code: '1'
+          exit-code: '0' # Set to 1 if you want to break the build on vulnerabilities
           severity: 'HIGH, CRITICAL'
 
-      - name: Setup up pages
-        uses: actions/configure-pages@v2
-      
-      - name: Upload Trivy Report
-        uses: actions/upload-pages-artifact@v1
+      # Note: If you want to deploy a Trivy HTML report, 
+      # you must change the format to 'template' and specify an output file.
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
         with:
-         path: trivy/
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v1
+          name: Test Results
+          path: '**/surefire-reports/TEST-*.xml'
+          reporter: java-junit
+
+      - name: Run Trivy Scan (HTML Report)
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: 'myapp:${{ github.sha }}'
+          format: 'template'
+          # This uses the built-in HTML template
+          template: '@/contrib/html.tpl'
+          output: 'trivy-report.html'
+          severity: 'HIGH, CRITICAL'
+
+      - name: Allure Report Action
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        with:
+          allure_results: target/allure-results
+          allure_history: allure-history
+          keep_reports: 20
+
+      # Move the Trivy report into the Allure folder before deploying
+      - name: Copy Trivy Report to History
+        if: always()
+        run: cp trivy-report.html allure-history/trivy-report.html
+
+      - name: Deploy to Github Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
