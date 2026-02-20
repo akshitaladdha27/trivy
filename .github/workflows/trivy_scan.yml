@@ -43,33 +43,30 @@ jobs:
           path: '**/surefire-reports/TEST-*.xml'
           reporter: java-junit
 
-      - name: Run Trivy Scan (HTML Report)
+      
+      - name: Run Trivy Scan (JSON for PR)
         uses: aquasecurity/trivy-action@0.20.0
         with:
           image-ref: 'myapp:${{ github.sha }}'
-          format: 'template'
-          # This uses the built-in HTML template
-          template: '@/contrib/html.tpl'
-          output: 'trivy-report.html'
+          format: 'json'
+          output: 'trivy-results.json'
           severity: 'HIGH, CRITICAL'
 
-      - name: Allure Report Action
-        uses: simple-elf/allure-report-action@master
+    
+      - name: Publish Trivy Report
+        uses: turing85/publish-report@v2
         if: always()
         with:
-          allure_results: target/allure-results
-          allure_history: allure-history
-          keep_reports: 20
+          checkout: false
+          report-name: 'Trivy Security Scan'
+          report-path: 'trivy-results.json'
+          display-type: 'compact' 
 
-      # Move the Trivy report into the Allure folder before deploying
-      - name: Copy Trivy Report to History
+      - name: Publish JUnit Report
+        uses: turing85/publish-report@v2
         if: always()
-        run: cp trivy-report.html allure-history/trivy-report.html
-
-      - name: Deploy to Github Pages
-        if: always()
-        uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: allure-history
+          checkout: false
+          report-name: 'JUnit Tests'
+          report-path: '**/surefire-reports/TEST-*.xml'
+          display-type: 'compact'
