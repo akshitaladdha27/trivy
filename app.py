@@ -2,10 +2,7 @@ from flask import Flask
 
 app = Flask(__name__)
 
-@app.route('/')
-def hello():
-    return "Security Scan Test: Python App"
-
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
-    # Note: In production, use a WSGI server like Gunicorn instead of Flask's built-in server.
+@app.route("/")
+def hello_world():
+ print("Hello, World!")
+ return "<p>Hello, World!</p>"

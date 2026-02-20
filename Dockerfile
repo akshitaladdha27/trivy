@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 
-WORKDIR /second
+WORKDIR /trivy
 
 COPY requirements.txt .
 RUN pip install --upgrade pip

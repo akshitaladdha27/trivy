@@ -25,9 +25,9 @@ jobs:
         
       - name: Run Trivy Scan
         uses: aquasecurity/trivy-action@0.20.0
+        # run: trivy image myapp:latest
         with:
           image-ref: 'myapp:latest'
           format: 'table'
           exit-code: '1'
-          ignore-unfixed: true
           severity: 'HIGH, CRITICAL'
