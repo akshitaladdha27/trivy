@@ -8,7 +8,7 @@ on:
     branches: 
       - "main"
 
-# Fix: Permissions ko left-most column mein rakha hai
+
 permissions:
   contents: write
   pull-requests: write
@@ -34,7 +34,7 @@ jobs:
         with:
           image-ref: 'myapp:latest'
           format: 'table'
-          exit-code: '0' # Isse '0' rakhein taki report hamesha generate ho
+          exit-code: '1'
           severity: 'HIGH, CRITICAL'
           output: 'trivy-results.txt'
 
@@ -42,7 +42,7 @@ jobs:
         uses: mshick/add-pr-comment@v2
         if: github.event_name == 'pull_request'
         with:
-          message-path: trivy-results.txt # Direct file path use karna better hai
+          message-path: trivy-results.txt 
 
       - name: Get Allure history
         uses: actions/checkout@v3
