@@ -70,6 +70,6 @@ jobs:
           report-fail-on-error: true 
           report-name: Tests
           report-path: 'junit-results.xml'
-          report-reporter: junit
+          report-reporter: java-junit
 
       
