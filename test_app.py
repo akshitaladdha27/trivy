@@ -1,8 +1,8 @@
-import pytest
+from flask import Flask
 
-def test_docker_build_status():
-    assert True
+app = Flask(__name__)
 
-def test_trivy_scan_readiness():
-    app_status = "ready"
-    assert app_status == "ready"
+# Ye aapka normal application code hai
+@app.route("/")
+def home():
+    return "Hello World"

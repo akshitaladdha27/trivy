@@ -62,12 +62,4 @@ jobs:
           report-path: 'trivy-junit.xml' 
           report-reporter: 'java-junit'
 
-      - name: Publish Report
-        uses: turing85/publish-report@v2
-        if: always()
-        with:
-          report-name: 'Tests'
-          report-path: 'junit-results.xml'
-          report-reporter: java-junit
-
       
