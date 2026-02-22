@@ -11,6 +11,7 @@ on:
 
   permissions:
     contents: write
+    pull-requests: write
 
 jobs:
   trivy-scan:
@@ -34,8 +35,19 @@ jobs:
           format: 'table'
           exit-code: '1'
           severity: 'HIGH, CRITICAL'
+          output: 'trivy-results.txt'
 
-      - name: Load test report history
+      - name: Post Trivy result to PR
+        uses: mshick/add-pr-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          message: |
+            ## 🛡️ Trivy Scan Results
+            ```
+            $(cat trivy-results.txt)
+            ```
+
+      - name: Get Allure history
         uses: actions/checkout@v3
         if: always()
         continue-on-error: true
@@ -43,18 +55,28 @@ jobs:
           ref: gh-pages
           path: gh-pages
 
-      - name: Build test report
-        uses: simple-elf/allure-report-action@v1.7
+      - name: Allure Report Action
+        uses: simple-elf/allure-report-action@master
         if: always()
         with:
+          allure_results: allure-results
           gh_pages: gh-pages
+          allure_report: allure-report
           allure_history: allure-history
-          allure_results: build/allure-results
 
-      - name: Publish test report
+      - name: Deploy Allure report to Github Pages
         uses: peaceiris/actions-gh-pages@v3
         if: always()
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: allure-history
+
+     
+      - name: Post Allure Link to PR
+        uses: thollander/actions-comment-pull-request@v2
+        if: always()
+        with:
+          message: |
+            ## 📊 Test Report Published
+            ✅ View full Allure Report here: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
