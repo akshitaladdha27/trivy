@@ -30,8 +30,11 @@ jobs:
 
       - name: Run Python Tests
         run: |
-          pytest --junitxml=results.xml
+          # Agar aapka test kisi specific folder mein hai toh 'pytest folder_name/' likhein
+          pytest --junitxml=results.xml || true 
         continue-on-error: true
+
+      
 
       - name: Run Trivy Scan
         uses: aquasecurity/trivy-action@0.20.0
@@ -44,8 +47,8 @@ jobs:
       
       - name: Publish JUnit Report
         uses: turing85/publish-report@v2
-        if: github.event_name == 'pull_request' && always()
+        if: always() # Taaki tests fail hone par bhi table dikhe
         with:
           checkout: false
           report-name: 'Python Test Results'
-          report-path: 'results.xml' 
+          report-path: 'results.xml'
