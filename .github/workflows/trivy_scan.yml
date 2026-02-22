@@ -48,9 +48,19 @@ jobs:
         uses: aquasecurity/trivy-action@0.20.0
         with:
           image-ref: 'myapp:latest'
-          format: 'table'
+          format: 'template'
+          template: '@/contrib/junit.tpl'
+          output: 'trivy-junit.xml'
           exit-code: '1'
           severity: 'HIGH, CRITICAL'
+
+      - name: Publish Trivy JUnit Report
+        uses: turing85/publish-report@v2
+        if: always()
+        with:
+          report-name: 'Trivy Security Scan'
+          report-path: 'trivy-junit.xml' 
+          report-reporter: 'java-junit'
 
       - name: Publish Report
         uses: turing85/publish-report@v2
