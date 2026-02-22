@@ -8,8 +8,8 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 
-COPY app.py .
+COPY test_app.py .
 
 EXPOSE 5000
 
-CMD ["python", "app.py"]
+CMD ["python", "test_app.py"]
