@@ -62,4 +62,12 @@ jobs:
           report-path: 'trivy-junit.xml' 
           report-reporter: 'java-junit'
 
+      - name: Check for Critical CVEs and Fail
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: 'myapp:latest'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL, HIGH'
+
       
