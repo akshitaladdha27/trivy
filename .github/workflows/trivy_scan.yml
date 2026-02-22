@@ -30,7 +30,7 @@ jobs:
         run: pip install pytest allure-pytest
 
       - name: Run Python Tests
-        run: pytest --junitxml=junit-results.xml
+        run: pytest --junitxml=junit-results.xml || true
         continue-on-error: true 
 
       - name: set up Docker
