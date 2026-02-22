@@ -2,77 +2,50 @@ name: Trivy Docker Scan
 
 on:
   push:
-    branches: 
-      - "main"
+    branches: ["main"]
   pull_request:
-    branches: 
-      - "main"
-
+    branches: ["main"]
 
 permissions:
   contents: write
   pull-requests: write
   checks: write
+  actions: read
 
 jobs:
   trivy-scan:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: set up Docker
-        uses: docker/setup-buildx-action@v2
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-      - name: Build Docker image
+      - name: Install dependencies
         run: |
-          docker build -t myapp:latest .
-        
+          pip install pytest pytest-cov allure-pytest
+
+      - name: Run Python Tests
+        run: |
+          pytest --junitxml=results.xml
+        continue-on-error: true
+
       - name: Run Trivy Scan
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          image-ref: 'myapp:latest'
+          image-ref: 'myapp:latest' 
+          scan-type: 'fs' 
           format: 'table'
           exit-code: '0'
-          severity: 'HIGH, CRITICAL'
-          output: 'trivy-results.txt'
 
-      - name: Post Trivy result to PR
-        uses: mshick/add-pr-comment@v2
-        if: github.event_name == 'pull_request'
-        with:
-          message-path: trivy-results.txt 
-
-      - name: Get Allure history
-        uses: actions/checkout@v3
-        if: always()
-        continue-on-error: true
-        with:
-          ref: main
-          path: main
-
-      - name: Allure Report Action
-        uses: simple-elf/allure-report-action@master
-        if: always()
-        with:
-          allure_results: allure-results
-          gh_pages: main
-          allure_report: allure-report
-          allure_history: allure-history
-
-      - name: Deploy Allure report to Github Pages
-        uses: peaceiris/actions-main@v3
-        if: always()
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: main
-          publish_dir: allure-history
-
-      - name: Post Allure Link to PR
-        uses: thollander/actions-comment-pull-request@v2
+      
+      - name: Publish JUnit Report
+        uses: turing85/publish-report@v2
         if: github.event_name == 'pull_request' && always()
         with:
-          message: |
-            ## 📊 Test Report Published
-            ✅ View full Allure Report here: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          checkout: false
+          report-name: 'Python Test Results'
+          report-path: 'results.xml' 

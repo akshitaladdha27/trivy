@@ -6,6 +6,8 @@ COPY requirements.txt .
 RUN pip install --upgrade pip
 
 RUN pip install -r requirements.txt
+RUN pip install pytest allure-pytest
+RUN pytest --alluredir=allure-results
 
 COPY app.py .
 
