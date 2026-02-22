@@ -52,22 +52,7 @@ jobs:
         uses: turing85/publish-report@v2
         if: always()
         with:
-          comment-header: my-comment-header
-          comment-message-success: |
-            YAY! {0} passed!  
-            
-            {1} tests were successful, {2} tests failed, {3} test were skipped.
-            
-            The report can be found [here]({4}).
-
-          comment-message-failure: |
-            On no! {0} failed!  
-
-            {1} tests were successful, {2} tests failed, {3} test were skipped.
-
-            The report can be found [here]({4}).
-          report-fail-on-error: true 
-          report-name: Tests
+          report-name: 'Tests'
           report-path: 'junit-results.xml'
           report-reporter: java-junit
 
