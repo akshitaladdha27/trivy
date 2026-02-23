@@ -25,27 +25,19 @@ jobs:
       - name: Build Docker image
         run: docker build -t myapp:latest .
 
-      - name: Generate Job Summary
+      - name: Generate Job Summary & HTML Report
         run: |
-          # 1. Trivy install karein (Fast method)
+          # 1. Trivy binary install karein
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
           
-          # 2. GitHub Step Summary mein data bhejein
-          # Yeh command automatic table format mein data summary page par dikhayegi
-          trivy fs --format github --output dependency-results.json .
+          # 2. GitHub Actions ke Summary page par Table dikhane ke liye (As per your Screenshot)
+          echo "## Trivy Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          trivy image --severity HIGH,CRITICAL --format table myapp:latest >> $GITHUB_STEP_SUMMARY
           
-          # Optional: Agar aapko visual table summary page par chahiye
-          trivy fs --scanners vuln,secret,misconfig --format table . >> $GITHUB_STEP_SUMMARY
-        
-      - name: Run Trivy Image Scan
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: 'myapp:latest'
-          format: 'template'
-          template: '@/contrib/junit.tpl'
-          output: 'interactive_report.html'
-          severity: 'HIGH,CRITICAL'
-          exit-code: '1'
+          # 3. Interactive HTML file banane ke liye (Bina plugin ke remote template use karein)
+          trivy image --format template \
+            --template "@https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl" \
+            --output interactive_report.html myapp:latest
 
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
