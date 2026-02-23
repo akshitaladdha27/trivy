@@ -36,6 +36,16 @@ jobs:
       - name: Run Python Tests
         run: pytest --junitxml=junit-results.xml
         continue-on-error: true 
+      
+      - name: Install Trivy
+        run: |
+          brew install aquasecurity/trivy/trivy
+
+      - name: Install & Run scan2html
+        run: |
+          trivy plugin install github.com/aquasecurity/trivy-plugin-common
+          trivy plugin install github.com/aquasecurity/trivy-plugin-scan2html
+          trivy scan2html fs --scanners vuln,secret,misconfig . interactive_report.html
 
       - name: set up Docker
         uses: docker/setup-buildx-action@v2
@@ -61,6 +71,12 @@ jobs:
           report-name: 'Trivy Security Scan'
           report-path: 'trivy-junit.xml' 
           report-reporter: 'java-junit'
+
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-interactive-report
+          path: interactive_report.html
         
       - name: Upload Trivy scan results to Github Security tan
         uses: github/codeql-action/upload-sarif@v2
