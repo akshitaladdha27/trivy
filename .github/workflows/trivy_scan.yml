@@ -41,8 +41,7 @@ jobs:
           MEDIUM=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length' trivy-results.json)
           LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="LOW")] | length' trivy-results.json)
 
-          echo "## Trivy Docker Image Scan Summary" >> $GITHUB_STEP_SUMMARY
-          
+          echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| CRITICAL | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
           echo "| HIGH | $HIGH |" >> $GITHUB_STEP_SUMMARY
