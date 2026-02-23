@@ -25,14 +25,16 @@ jobs:
       - name: Build Docker image
         run: docker build -t myapp:latest .
 
-      - name: Install Trivy and Generate Report
+      - name: Generate Interactive HTML Report
         run: |
           # 1. Trivy install karein
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
           
-          # 2. Built-in template use karke report banayein
-          # Isse wahi table dashboard banega (Vulnerabilities, Severity, Fixed Version etc.)
-          trivy fs --format template --template "@contrib/html.tpl" -o interactive_report.html .
+          # 2. Direct remote template URL use karein
+          # Isse 'no such file or directory' wala error nahi aayega
+          trivy fs --format template \
+            --template "@https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl" \
+            -o interactive_report.html .
         
       - name: Run Trivy Image Scan
         uses: aquasecurity/trivy-action@0.28.0
