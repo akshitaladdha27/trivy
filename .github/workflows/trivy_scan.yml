@@ -14,46 +14,60 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Install Trivy
       - name: Install Trivy
         run: |
-          sudo apt-get update
-          sudo apt-get install wget jq -y
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.2_Linux-64bit.deb
-          sudo dpkg -i trivy_0.50.2_Linux-64bit.deb
+          # Latest version install karne ka sabse safe tarika
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
-      # Run Filesystem Scan
       - name: Run Trivy Scan (JSON)
         run: |
+          # Scan results ko JSON mein save karein parsing ke liye
           trivy fs --format json -o trivy-results.json .
 
-      # Generate Beautiful Summary
-      - name: Generate Security Summary
+      - name: Generate Security Summary Dashboard
         run: |
-          CRITICAL=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-results.json)
-          HIGH=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="HIGH")] | length')
-          MEDIUM=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length')
-          LOW=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="LOW")] | length')
+          # jq filters ko fix kiya gaya hai
+          CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-results.json)
+          HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-results.json)
+          MEDIUM=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length' trivy-results.json)
+          LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="LOW")] | length' trivy-results.json)
+          TOTAL=$((CRITICAL + HIGH + MEDIUM + LOW))
 
+          # Checkmarx jaisa Build Summary Dashboard banana
           echo "## 🔐 Trivy Security Scan Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Vulnerability Stats" >> $GITHUB_STEP_SUMMARY
           echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 🔴 Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🟠 High | $HIGH |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🟡 Medium | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🟢 Low | $LOW |" >> $GITHUB_STEP_SUMMARY
-
-          TOTAL=$((CRITICAL + HIGH + MEDIUM + LOW))
+          echo "| 🔴 **CRITICAL** | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟠 **HIGH** | $HIGH |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟡 **MEDIUM** | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟢 **LOW** | $LOW |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🧮 Total Vulnerabilities: $TOTAL" >> $GITHUB_STEP_SUMMARY
+          echo "### 🧮 Total Found: $TOTAL" >> $GITHUB_STEP_SUMMARY
 
-      # Fail if High or Critical found
+          # Exporting variables for next step
+          echo "CRITICAL_COUNT=$CRITICAL" >> $GITHUB_ENV
+          echo "HIGH_COUNT=$HIGH" >> $GITHUB_ENV
+
+      - name: Generate Interactive HTML Report
+        run: |
+          # Waisa hi table banane ke liye jaisa image mein hai
+          trivy fs --format template \
+            --template "@https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl" \
+            -o interactive_report.html .
+
+      - name: Upload Report Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-security-report
+          path: interactive_report.html
+
       - name: Enforce Security Policy
         run: |
-          if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
-            echo "❌ High or Critical vulnerabilities detected!"
+          if [ "$CRITICAL_COUNT" -gt 0 ] || [ "$HIGH_COUNT" -gt 0 ]; then
+            echo "❌ High/Critical vulnerabilities detected. Blocking build!"
             exit 1
           else
-            echo "✅ No blocking vulnerabilities found."
+            echo "✅ Security check passed."
           fi
