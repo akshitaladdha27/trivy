@@ -36,9 +36,14 @@ jobs:
       
       - name: Install Trivy & Plugins
         run: |
-          # Fast install via script
+          # Install Trivy
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-          trivy plugin install github.com/aquasecurity/trivy-plugin-scan2html
+          
+          # Install plugins using the full HTTPS URL to avoid git prompt issues
+          trivy plugin install https://github.com/aquasecurity/trivy-plugin-common.git
+          trivy plugin install https://github.com/aquasecurity/trivy-plugin-scan2html.git
+          
+          # Run the scan
           trivy scan2html fs --scanners vuln,secret,misconfig . interactive_report.html
       
       - name: set up Docker
