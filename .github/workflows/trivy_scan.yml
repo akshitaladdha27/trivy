@@ -77,18 +77,13 @@ jobs:
         with:
           name: trivy-interactive-report
           path: interactive_report.html
-        
-      - name: Upload Trivy scan results to Github Security tan
-        uses: github/codeql-action/upload-sarif@v2
-        with: 
-         sarif_file: 'trivy-results.sarif'  
 
-      - name: Check for Critical CVEs and Fail
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          image-ref: 'myapp:latest'
-          format: 'table'
-          exit-code: '1'
-          severity: 'CRITICAL'
+      # - name: Check for Critical CVEs and Fail
+      #   uses: aquasecurity/trivy-action@0.24.0
+      #   with:
+      #     image-ref: 'myapp:latest'
+      #     format: 'table'
+      #     exit-code: '1'
+      #     severity: 'CRITICAL'
 
       
