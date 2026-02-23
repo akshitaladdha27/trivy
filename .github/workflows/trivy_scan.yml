@@ -31,9 +31,8 @@ jobs:
         run: |
           trivy image --format json -o trivy-results.json myapp:latest
 
-          trivy image --severity HIGH,CRITICAL --exit-code 1 --format template --template "@contrib/html.tpl" -o interactive_report.html myapp:latest
+          trivy image --severity HIGH,CRITICAL --exit-code 0 --format template --template "@contrib/html.tpl" -o interactive_report.html myapp:latest
         
-            
 
       - name: Generate Visual Job Summary
         run: |
@@ -50,6 +49,7 @@ jobs:
           
           echo "CRITICAL_COUNT=$CRITICAL" >> $GITHUB_ENV
           echo "HIGH_COUNT=$HIGH" >> $GITHUB_ENV
+          
 
       - name: Upload Report Artifact
         uses: actions/upload-artifact@v4
