@@ -32,6 +32,10 @@ jobs:
           trivy image --format json -o trivy-results.json myapp:latest
 
           trivy image --format template --template "@contrib/html.tpl" -o interactive_report.html myapp:latest
+        with: 
+          exit-code: 1
+          severity: 'HIGH, CRITICAL'
+            
 
       - name: Generate Visual Job Summary
         run: |
@@ -41,8 +45,10 @@ jobs:
           LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="LOW")] | length' trivy-results.json)
 
           echo "## Trivy Docker Image Scan Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| CRITICAL | HIGH | MEDIUM | LOW |" >> $GITHUB_STEP_SUMMARY
-          echo "| $CRITICAL | $HIGH | $MEDIUM | $LOW |" >> $GITHUB_STEP_SUMMARY
+          echo "| CRITICAL | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+          echo "| HIGH | $HIGH |" >> $GITHUB_STEP_SUMMARY
+          echo "| MEDIUM | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+          echo "| LOW | $LOW |" >> $GITHUB_STEP_SUMMARY
           
           echo "CRITICAL_COUNT=$CRITICAL" >> $GITHUB_ENV
           echo "HIGH_COUNT=$HIGH" >> $GITHUB_ENV
