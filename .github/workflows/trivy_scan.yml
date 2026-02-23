@@ -19,26 +19,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Trivy & Plugins
-        run: |
-          
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-          
-          
-          trivy plugin install https://github.com/aquasecurity/trivy-plugin-referrer.git
-          trivy plugin install https://github.com/aquasecurity/trivy-plugin-referrer/releases/download/v0.3.1/trivy_plugin_referrer_0.3.1_macOS-ARM64.tar.gz
-          trivy plugin install https://github.com/aquasecurity/trivy-plugin-scan2html.git
-          
-          # Generate the HTML report from the filesystem
-          trivy scan2html fs --scanners vuln,secret,misconfig . interactive_report.html
-
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
         run: docker build -t myapp:latest .
+
+      - name: Install Trivy and Generate Interactive Report
+        run: |
+          # 1. Trivy install karein
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          
+          # 2. scan2html plugin install karein (Direct URL use karein taaki credential error na aaye)
+          trivy plugin install https://github.com/aquasecurity/trivy-plugin-scan2html.git
+          
+          # 3. Scan run karein aur interactive_report.html generate karein
+          # Isse wahi dashboard banega jo aapne screenshot mein dekha hai
+          trivy scan2html fs --scanners vuln,secret,misconfig . interactive_report.html
         
-      - name: Run Trivy Image Scan (JUnit)
+      - name: Run Trivy Image Scan
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: 'myapp:latest'
