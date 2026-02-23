@@ -19,22 +19,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
-
       - name: Build Docker image
         run: docker build -t myapp:latest .
 
-      - name: Generate Job Summary & HTML Report
-        run: |
-          # 1. Trivy binary install karein
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-          
-          # 3. Interactive HTML file banane ke liye (Bina plugin ke remote template use karein)
-          trivy image --format template \
-            --template "@https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl" \
-            --output interactive_report.html myapp:latest
+      - name: Run Trivy for Job Summary
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: 'myapp:latest'
+          format: 'table'
+          output: 'summary.txt' 
+          severity: 'HIGH,CRITICAL'
 
+      - name: Publish Summary to GitHub
+        run: |
+          echo "## Trivy Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          cat summary.txt >> $GITHUB_STEP_SUMMARY
+
+      - name: Run Trivy for HTML Report
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: 'myapp:latest'
+          format: 'template'
+          template: '@/contrib/html.tpl'
+          output: 'interactive_report.html'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1' 
+          
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
         if: always()
