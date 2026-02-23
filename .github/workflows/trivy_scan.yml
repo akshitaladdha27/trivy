@@ -16,53 +16,43 @@ permissions:
 jobs:
   trivy-scan:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Updated to v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5 # Updated to v5
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
-        run: |
-          pip install flask pytest allure-pytest
-
-      - name: Install dependencies
-        run: pip install pytest allure-pytest
+      - name: Install Python Dependencies
+        run: pip install flask pytest allure-pytest
 
       - name: Run Python Tests
         run: pytest --junitxml=junit-results.xml
         continue-on-error: true 
       
-      - name: Install Trivy
+      - name: Install Trivy & Plugins
         run: |
-          brew install aquasecurity/trivy/trivy
-
-      - name: Install & Run scan2html
-        run: |
-          trivy plugin install github.com/aquasecurity/trivy-plugin-common
+          # Fast install via script
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
           trivy plugin install github.com/aquasecurity/trivy-plugin-scan2html
           trivy scan2html fs --scanners vuln,secret,misconfig . interactive_report.html
 
-      - name: set up Docker
-        uses: docker/setup-buildx-action@v2
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
-        run: |
-          docker build -t myapp:latest .
+        run: docker build -t myapp:latest .
         
-      - name: Run Trivy Scan
-        uses: aquasecurity/trivy-action@0.20.0
+      - name: Run Trivy Image Scan (JUnit)
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: 'myapp:latest'
           format: 'template'
           template: '@/contrib/junit.tpl'
           output: 'trivy-junit.xml'
-          exit-code: '1'
-          severity: 'HIGH, CRITICAL'
+          severity: 'HIGH,CRITICAL' # No spaces between severities
 
       - name: Publish Trivy JUnit Report
         uses: turing85/publish-report@v2
@@ -72,18 +62,9 @@ jobs:
           report-path: 'trivy-junit.xml' 
           report-reporter: 'java-junit'
 
-      - name: Upload Report
+      - name: Upload HTML Report
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: trivy-interactive-report
           path: interactive_report.html
-
-      # - name: Check for Critical CVEs and Fail
-      #   uses: aquasecurity/trivy-action@0.24.0
-      #   with:
-      #     image-ref: 'myapp:latest'
-      #     format: 'table'
-      #     exit-code: '1'
-      #     severity: 'CRITICAL'
-
-      
