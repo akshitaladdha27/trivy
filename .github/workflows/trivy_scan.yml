@@ -25,17 +25,14 @@ jobs:
       - name: Build Docker image
         run: docker build -t myapp:latest .
 
-      - name: Install Trivy and Generate Interactive Report
+      - name: Install Trivy and Generate Report
         run: |
           # 1. Trivy install karein
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
           
-          # 2. scan2html plugin install karein (Direct URL use karein taaki credential error na aaye)
-          trivy plugin install https://github.com/aquasecurity/trivy-plugin-scan2html.git
-          
-          # 3. Scan run karein aur interactive_report.html generate karein
-          # Isse wahi dashboard banega jo aapne screenshot mein dekha hai
-          trivy scan2html fs --scanners vuln,secret,misconfig . interactive_report.html
+          # 2. Built-in template use karke report banayein
+          # Isse wahi table dashboard banega (Vulnerabilities, Severity, Fixed Version etc.)
+          trivy fs --format template --template "@contrib/html.tpl" -o interactive_report.html .
         
       - name: Run Trivy Image Scan
         uses: aquasecurity/trivy-action@0.28.0
@@ -43,7 +40,7 @@ jobs:
           image-ref: 'myapp:latest'
           format: 'template'
           template: '@/contrib/junit.tpl'
-          output: 'trivy-junit.xml'
+          output: 'interactive_report.html'
           severity: 'HIGH,CRITICAL'
           exit-code: '1'
 
