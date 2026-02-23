@@ -25,16 +25,17 @@ jobs:
       - name: Build Docker image
         run: docker build -t myapp:latest .
 
-      - name: Generate Interactive HTML Report
+      - name: Generate Job Summary
         run: |
-          # 1. Trivy install karein
+          # 1. Trivy install karein (Fast method)
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
           
-          # 2. Direct remote template URL use karein
-          # Isse 'no such file or directory' wala error nahi aayega
-          trivy fs --format template \
-            --template "@https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl" \
-            -o interactive_report.html .
+          # 2. GitHub Step Summary mein data bhejein
+          # Yeh command automatic table format mein data summary page par dikhayegi
+          trivy fs --format github --output dependency-results.json .
+          
+          # Optional: Agar aapko visual table summary page par chahiye
+          trivy fs --scanners vuln,secret,misconfig --format table . >> $GITHUB_STEP_SUMMARY
         
       - name: Run Trivy Image Scan
         uses: aquasecurity/trivy-action@0.28.0
