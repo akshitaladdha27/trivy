@@ -26,7 +26,7 @@ jobs:
         run: docker build -t myapp:latest .
 
       - name: Checkmarx AST Github Action
-        uses: checkmarx/ast-github-action@v2.0.44
+        uses: checkmarx/ast-github-action@2
         with:
           base_uri: ${{ secrets.AST_RND_SCANS_BASE_URI }}
           cx_tenant: ${{ secrets.AST_RND_SCANS_TENANT }}
