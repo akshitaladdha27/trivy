@@ -21,11 +21,11 @@ jobs:
 
       - name: Install Trivy & Plugins
         run: |
-          # Install Trivy binary directly
+          
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
           
-          # Install plugins using full .git URLs to bypass credential prompts
-          trivy plugin install https://github.com/aquasecurity/trivy-plugin-common.git
+          
+          trivy plugin install https://github.com/aquasecurity/trivy-plugin-template.git
           trivy plugin install https://github.com/aquasecurity/trivy-plugin-scan2html.git
           
           # Generate the HTML report from the filesystem
