@@ -30,10 +30,6 @@ jobs:
           # 1. Trivy binary install karein
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
           
-          # 2. GitHub Actions ke Summary page par Table dikhane ke liye (As per your Screenshot)
-          echo "## Trivy Security Scan Summary" >> $GITHUB_STEP_SUMMARY
-          trivy image --severity HIGH,CRITICAL --format table myapp:latest >> $GITHUB_STEP_SUMMARY
-          
           # 3. Interactive HTML file banane ke liye (Bina plugin ke remote template use karein)
           trivy image --format template \
             --template "@https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl" \
