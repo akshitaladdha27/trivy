@@ -16,7 +16,6 @@ jobs:
 
       - name: Build Docker image
         run: |
-          # Pehle image build karein taaki Trivy use scan kar sake
           docker build -t myapp:latest .
 
       - name: Install Trivy
@@ -30,27 +29,24 @@ jobs:
 
       - name: Run Trivy Image Scan (JSON & HTML)
         run: |
-          # Yahan 'fs' ki jagah 'image' aur image ka naam 'myapp:latest' dena zaroori hai
           trivy image --format json -o trivy-results.json myapp:latest
-          
-          # Interactive table report banane ke liye
+
           trivy image --format template --template "@contrib/html.tpl" -o interactive_report.html myapp:latest
 
       - name: Generate Visual Job Summary
         run: |
-          # JSON file se vulnerabilities ka count nikaal kar Dashboard banana
           CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-results.json)
           HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-results.json)
           MEDIUM=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length' trivy-results.json)
           LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="LOW")] | length' trivy-results.json)
 
-          echo "## 🔐 Trivy Docker Image Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Trivy Docker Image Scan Summary" >> $GITHUB_STEP_SUMMARY
           echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 🔴 CRITICAL | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🟠 HIGH | $HIGH |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🟡 MEDIUM | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🟢 LOW | $LOW |" >> $GITHUB_STEP_SUMMARY
+          echo "| CRITICAL | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+          echo "| HIGH | $HIGH |" >> $GITHUB_STEP_SUMMARY
+          echo "| MEDIUM | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+          echo "| LOW | $LOW |" >> $GITHUB_STEP_SUMMARY
           
           echo "CRITICAL_COUNT=$CRITICAL" >> $GITHUB_ENV
           echo "HIGH_COUNT=$HIGH" >> $GITHUB_ENV
@@ -65,6 +61,6 @@ jobs:
       - name: Enforce Security Policy
         run: |
           if [ "$CRITICAL_COUNT" -gt 0 ] || [ "$HIGH_COUNT" -gt 0 ]; then
-            echo "❌ High/Critical issues found in Docker Image! Failing build."
+            echo "High/Critical issues found in Docker Image! Failing build."
             exit 1
           fi
