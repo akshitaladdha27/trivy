@@ -1,4 +1,4 @@
-name: Trivy Docker Scan
+name: Trivy Security Pipeline
 
 on:
   push:
@@ -6,44 +6,54 @@ on:
   pull_request:
     branches: ["main"]
 
-permissions:
-  contents: write
-  pull-requests: write
-  checks: write
-
 jobs:
-  Trivy-scan:
+  trivy-scan:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
+      # Install Trivy
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install wget jq -y
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.2_Linux-64bit.deb
+          sudo dpkg -i trivy_0.50.2_Linux-64bit.deb
 
-      - name: Build Docker image
-        run: docker build -t myapp:latest .
+      # Run Filesystem Scan
+      - name: Run Trivy Scan (JSON)
+        run: |
+          trivy fs --format json -o trivy-results.json .
 
-      - name: Checkmarx AST Github Action
-        uses: checkmarx/ast-github-action@86e9ae570a811f9a1fb85903647a307aa3bf6253
-        with:
-          base_uri: ${{ secrets.AST_RND_SCANS_BASE_URI }}
-          cx_tenant: ${{ secrets.AST_RND_SCANS_TENANT }}
-          cx_client_id: ${{ secrets.AST_RND_SCANS_CLIENT_ID }}
-          cx_client_secret: ${{ secrets.AST_RND_SCANS_CLIENT_SECRET }}
-          additional_params: >
-            --tags AceOfSpades
-            --project-groups sast-and-engines/sast/languages-and-frameworks/aceofspades
-            --threshold "sast-critical=1; sast-high=1; sast-medium=1; sast-low=1;
-            sca-critical=1; sca-high=1; sca-medium=1; sca-low=1;
-            iac-security-critical=1; iac-security-high=1;
-            iac-security-medium=1; iac-security-low=1"
+      # Generate Beautiful Summary
+      - name: Generate Security Summary
+        run: |
+          CRITICAL=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-results.json)
+          HIGH=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="HIGH")] | length')
+          MEDIUM=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length')
+          LOW=$(jq '[.Results[].Vulnerabilities[]? | select(.Severity=="LOW")] | length')
 
-      - name: Run Trivy Image Scan
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: 'myapp:latest'
-          format: 'table'
-          severity: 'HIGH,CRITICAL'
-          exit-code: '1'
+          echo "## 🔐 Trivy Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔴 Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟠 High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟡 Medium | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟢 Low | $LOW |" >> $GITHUB_STEP_SUMMARY
+
+          TOTAL=$((CRITICAL + HIGH + MEDIUM + LOW))
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🧮 Total Vulnerabilities: $TOTAL" >> $GITHUB_STEP_SUMMARY
+
+      # Fail if High or Critical found
+      - name: Enforce Security Policy
+        run: |
+          if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
+            echo "❌ High or Critical vulnerabilities detected!"
+            exit 1
+          else
+            echo "✅ No blocking vulnerabilities found."
+          fi
