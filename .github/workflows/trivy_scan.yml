@@ -31,10 +31,8 @@ jobs:
         run: |
           trivy image --format json -o trivy-results.json myapp:latest
 
-          trivy image --format template --template "@contrib/html.tpl" -o interactive_report.html myapp:latest
-        with: 
-          exit-code: 1
-          severity: 'HIGH, CRITICAL'
+          trivy image --severity HIGH,CRITICAL --exit-code 1 --format template --template "@contrib/html.tpl" -o interactive_report.html myapp:latest
+        
             
 
       - name: Generate Visual Job Summary
