@@ -14,34 +14,37 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Build Docker image
+        run: |
+          # Pehle image build karein taaki Trivy use scan kar sake
+          docker build -t myapp:latest .
+
       - name: Install Trivy
         run: |
-          # Latest version install karein taaki 404 error na aaye
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
       - name: Download HTML Template
         run: |
-          # Template ko pehle download karein taaki path ka issue na rahe
           mkdir -p contrib
           curl -L https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl -o contrib/html.tpl
 
-      - name: Run Trivy Scan (JSON & HTML)
+      - name: Run Trivy Image Scan (JSON & HTML)
         run: |
-          # 1. JSON report summary dashboard ke liye
-          trivy fs --format json -o trivy-results.json .
+          # Yahan 'fs' ki jagah 'image' aur image ka naam 'myapp:latest' dena zaroori hai
+          trivy image --format json -o trivy-results.json myapp:latest
           
-          # 2. Interactive HTML Table banane ke liye
-          trivy fs --format template --template "@contrib/html.tpl" -o interactive_report.html .
+          # Interactive table report banane ke liye
+          trivy image --format template --template "@contrib/html.tpl" -o interactive_report.html myapp:latest
 
       - name: Generate Visual Job Summary
         run: |
-          # jq se data nikaal kar summary page par table dikhayein
+          # JSON file se vulnerabilities ka count nikaal kar Dashboard banana
           CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-results.json)
           HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-results.json)
           MEDIUM=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length' trivy-results.json)
           LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="LOW")] | length' trivy-results.json)
 
-          echo "## 🔐 Trivy Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔐 Trivy Docker Image Scan Summary" >> $GITHUB_STEP_SUMMARY
           echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| 🔴 CRITICAL | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
@@ -49,7 +52,6 @@ jobs:
           echo "| 🟡 MEDIUM | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
           echo "| 🟢 LOW | $LOW |" >> $GITHUB_STEP_SUMMARY
           
-          # Variables for enforcement
           echo "CRITICAL_COUNT=$CRITICAL" >> $GITHUB_ENV
           echo "HIGH_COUNT=$HIGH" >> $GITHUB_ENV
 
@@ -57,12 +59,12 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: trivy-interactive-report
+          name: trivy-image-report
           path: interactive_report.html
 
       - name: Enforce Security Policy
         run: |
           if [ "$CRITICAL_COUNT" -gt 0 ] || [ "$HIGH_COUNT" -gt 0 ]; then
-            echo "❌ High/Critical issues found! Failing build."
+            echo "❌ High/Critical issues found in Docker Image! Failing build."
             exit 1
           fi
