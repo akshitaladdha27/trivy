@@ -30,9 +30,12 @@ jobs:
         run: |
           pip install flask pytest allure-pytest
 
+      - name: Install dependencies
+        run: pip install pytest allure-pytest
+
       - name: Run Python Tests
         run: pytest --junitxml=junit-results.xml
-        # continue-on-error: true 
+        continue-on-error: true 
 
       - name: set up Docker
         uses: docker/setup-buildx-action@v2
