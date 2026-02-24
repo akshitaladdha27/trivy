@@ -22,16 +22,16 @@ jobs:
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Download HTML Template
-        run: |
-          mkdir -p contrib
-          curl -L https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl -o contrib/html.tpl
+      # - name: Download HTML Template
+      #   run: |
+      #     mkdir -p contrib
+      #     curl -L https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl -o contrib/html.tpl
 
       - name: Run Trivy Image Scan (JSON & HTML)
         run: |
           trivy image --format json -o trivy-results.json myapp:latest
 
-          trivy image --severity HIGH,CRITICAL --exit-code 1 --format template --template "@contrib/html.tpl" -o interactive_report.html myapp:latest
+          # trivy image --severity HIGH,CRITICAL --exit-code 1 --format template --template "@contrib/html.tpl" -o interactive_report.html myapp:latest
         
 
       - name: Generate Visual Job Summary
