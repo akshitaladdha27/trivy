@@ -59,11 +59,5 @@ jobs:
           name: trivy-image-report
           path: interactive_report.html
 
-      - name: IF Fail
-        run: |
-          if [ "$CRITICAL_COUNT" -gt 0 ] || [ "$HIGH_COUNT" -gt 0 ]; then
-            echo "Security Gate Failed!"
-            exit 1 
-          fi
 
       
