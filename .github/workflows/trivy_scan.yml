@@ -52,8 +52,16 @@ jobs:
           
       - name: Publish Trivy Output to Summary
         run: |
+          CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-results.json)
+          HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-results.json)
+
+          
           echo "## Trivy Scan Results" >> $GITHUB_STEP_SUMMARY
           echo '(CRITICAL - $CRITICAL, HIGH - $HIGH) >>$GITHUB_STEP_SUMMARY
+          echo "### Vulnerability Details" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          trivy image --format table myapp:latest >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           
          
           
