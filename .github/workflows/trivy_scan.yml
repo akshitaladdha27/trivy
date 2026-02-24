@@ -53,9 +53,9 @@ jobs:
           echo "| LOW | $LOW |" >> $GITHUB_STEP_SUMMARY
 
           echo "### Detailed Vulnerability Report" >> $GITHUB_STEP_SUMMARY
-          echo '```text' >> $GITHUB_STEP_SUMMARY
+          # echo '```text' >> $GITHUB_STEP_SUMMARY
           trivy image --format table myapp:latest >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          # echo '```' >> $GITHUB_STEP_SUMMARY
 
           
       
