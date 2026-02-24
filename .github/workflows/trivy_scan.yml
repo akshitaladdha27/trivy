@@ -35,6 +35,7 @@ jobs:
         
 
       - name: Generate Visual Job Summary
+        if: always()
         run: |
           CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-results.json)
           HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-results.json)
