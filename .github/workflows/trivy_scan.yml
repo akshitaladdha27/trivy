@@ -26,7 +26,7 @@ jobs:
         run: |
           trivy image --format json -o trivy-results.json myapp:latest
 
-          trivy image --severity HIGH,CRITICAL --exit-code 1 --format -o interactive_report.html myapp:latest
+          trivy image --severity HIGH,CRITICAL --exit-code 1 
          
       - name: Generate Visual Job Summary
         if: always()
