@@ -49,6 +49,10 @@ jobs:
           echo "| MEDIUM | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
           echo "| LOW | $LOW |" >> $GITHUB_STEP_SUMMARY
 
+          
+      - name: Publish Trivy Output to Summary
+        run: |
+          echo "## Trivy Scan Results" >> $GITHUB_STEP_SUMMARY
           echo '(CRITICAL - $CRITICAL, HIGH - $HIGH) >>$GITHUB_STEP_SUMMARY
           
          
