@@ -19,9 +19,6 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          report_format: json
-          report_path: gitleaks-report.json
 
       - name: Upload Report
         uses: actions/upload-artifact@v4
