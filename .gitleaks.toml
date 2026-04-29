@@ -7,8 +7,3 @@ description = "Detect generic password assignments"
 regex = '''(?i)(password|passwd|pwd)\s*[:=]\s*["'][^"']{6,}["']'''
 tags = ["password"]
 
-[[rules]]
-id = "detect-api-keys"
-description = "Detect generic api keys"
-regex = '''(?i)api[_-]?key\s*[:=]\s*["'][^"']{10,}["']'''
-tags = ["key"]
