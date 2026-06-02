@@ -2,7 +2,7 @@ name: Trivy Security Pipeline
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main. gitleaks"]
   pull_request:
     branches: ["main"]
 
